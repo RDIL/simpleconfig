@@ -10,8 +10,11 @@ dependencies {
     implementation "com.google.code.gson:gson:2.8.6"
 }
 
-version "1.0.0"
+version "1.0.1"
 group "rocks.rdil"
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 
 jar {
     from "LICENSE"
