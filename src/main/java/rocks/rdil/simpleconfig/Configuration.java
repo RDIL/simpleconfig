@@ -17,6 +17,8 @@ public @interface Configuration {
      * Leave this empty if you want the JSON file to just use the field's name.
      * 
      * @return The name this field will use in the saved JSON file.
+     * @deprecated This is deprecated and may be removed in the future.
      */
+    @Deprecated
     String alt() default "";
 }

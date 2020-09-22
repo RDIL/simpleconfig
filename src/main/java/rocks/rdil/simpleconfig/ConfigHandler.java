@@ -17,7 +17,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The handler for JSON files - manages {@link rocks.rdil.simpleconfig.Config} classes.
+ * The handler for JSON files - manages {@link rocks.rdil.simpleconfig.Config}
+ * classes.
  */
 @SuppressWarnings("deprecation")
 public final class ConfigHandler {
@@ -56,26 +57,30 @@ public final class ConfigHandler {
     }
 
     /**
-     * Get the JSON object for all the registered {@link rocks.rdil.simpleconfig.Config}s.
+     * Get the JSON object for all the registered
+     * {@link rocks.rdil.simpleconfig.Config}s.
      * 
      * @return The JsonObject instance.
      */
-    public final JsonObject getCfg() {
+    public JsonObject getJsonObject() {
         return this.cfg;
     }
 
     /**
-     * Registers a {@link rocks.rdil.simpleconfig.Config} class to the current JSON file.
+     * Registers a {@link rocks.rdil.simpleconfig.Config} class to the current JSON
+     * file.
      * 
      * @param config The config class.
      */
-    public final void register(Config config) {
+    public void register(Config config) {
         this.configObjs.add(config);
+
+        boolean isAllFields = config.getClass().isAnnotationPresent(AllFieldsAreConfigurations.class);
         Field[] classFields = config.getClass().getDeclaredFields();
         Collection<Field> dest = new ArrayList<>();
 
         for (Field f : classFields) {
-            if (f.isAnnotationPresent(Configuration.class)) {
+            if (f.isAnnotationPresent(Configuration.class) || isAllFields) {
                 dest.add(f);
             }
         }
@@ -86,10 +91,15 @@ public final class ConfigHandler {
             }
 
             Configuration conf = it.getAnnotation(Configuration.class);
-            if (this.cfg.has(conf.alt())) {
-                if (conf.alt().length() > 0 && !this.cfg.has(it.getName())) {
-                    JsonElement var22 = this.cfg.get(conf.alt());
-                    if (var22.getAsJsonObject().has(conf.alt())) {
+
+            if (conf != null) {
+                if (
+                    this.cfg.has(conf.alt())
+                    && conf.alt().length() > 0
+                    && !this.cfg.has(it.getName())
+                ) {
+                    JsonElement altResolved = this.cfg.get(conf.alt());
+                    if (altResolved.getAsJsonObject().has(conf.alt())) {
                         this.cfg.add(it.getName(), this.cfg.get(conf.alt()).getAsJsonObject().get(conf.alt()));
                     }
                 }
@@ -98,11 +108,22 @@ public final class ConfigHandler {
             if (this.cfg.has(it.getName())) {
                 try {
                     it.set(config, GsonExt.gson.fromJson(this.cfg.get(it.getName()), it.getType()));
-                } catch (Exception var13) {
+                } catch (Exception e) {
+                    e.printStackTrace();
                     throw new IllegalStateException("Config options cannot be final!");
                 }
             }
         }
+    }
+
+    /**
+     * Removes a {@link rocks.rdil.simpleconfig.Config} class from this handler.
+     * This may cause changes to be discarded!
+     * 
+     * @param config The config class.
+     */
+    public void unregister(Config config) {
+        this.configObjs.remove(config);
     }
 
     private void loadConfigurationToJsonFile(Config config) {
@@ -117,9 +138,12 @@ public final class ConfigHandler {
 
         Field it;
         try {
-            for (Iterator<Field> var4 = dest.iterator(); var4.hasNext(); this.cfg.add(it.getName(),
-                    GsonExt.gson.toJsonTree(it.get(config), it.getType()))) {
-                it = var4.next();
+            for (
+                Iterator<Field> annotatedFieldIter = dest.iterator();
+                annotatedFieldIter.hasNext();
+                this.cfg.add(it.getName(), GsonExt.gson.toJsonTree(it.get(config), it.getType()))
+            ) {
+                it = annotatedFieldIter.next();
                 if (!it.isAccessible()) {
                     it.setAccessible(true);
                 }
@@ -132,7 +156,7 @@ public final class ConfigHandler {
     /**
      * Saves the configuration to the file assigned to this handler.
      */
-    public final void save() {
+    public void save() {
         for (Config it : this.configObjs) {
             this.loadConfigurationToJsonFile(it);
         }

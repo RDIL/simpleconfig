@@ -1,6 +1,6 @@
 package rocks.rdil.simpleconfig;
 
 /**
- * An empty abstract class that will hold your configuration options in it.
+ * An abstract class that is typically used as a container for sets of configuration options.
  */
 public abstract class Config {}
