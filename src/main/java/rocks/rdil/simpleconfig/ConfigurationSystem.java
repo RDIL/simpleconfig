@@ -1,6 +1,5 @@
 package rocks.rdil.simpleconfig;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -17,13 +16,14 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * The handler for JSON files - manages {@link rocks.rdil.simpleconfig.Config}
- * classes.
+ * The system's main class used for management.
+ * Every JSON file should have an instance of this, and JSON files can
+ * have unlimited options/option classes.
  */
 @SuppressWarnings("deprecation")
-public final class ConfigHandler {
+public final class ConfigurationSystem {
     private JsonObject cfg;
-    private final List<Config> configObjs;
+    private final List<Object> configObjs;
     private final File file;
 
     /**
@@ -31,7 +31,7 @@ public final class ConfigHandler {
      * 
      * @param file The file that the configuration should be saved/loaded from.
      */
-    public ConfigHandler(File file) {
+    public ConfigurationSystem(File file) {
         this.file = file;
         this.cfg = new JsonObject();
         this.configObjs = new ArrayList<>();
@@ -57,8 +57,7 @@ public final class ConfigHandler {
     }
 
     /**
-     * Get the JSON object for all the registered
-     * {@link rocks.rdil.simpleconfig.Config}s.
+     * Get the JSON object for this instance of the system's file.
      * 
      * @return The JsonObject instance.
      */
@@ -67,20 +66,19 @@ public final class ConfigHandler {
     }
 
     /**
-     * Registers a {@link rocks.rdil.simpleconfig.Config} class to the current JSON
-     * file.
+     * Registers a class and all the {@link rocks.rdil.simpleconfig.Option}s
+     * it contains to the current JSON file.
      * 
-     * @param config The config class.
+     * @param config The class to be registered.
      */
-    public void register(Config config) {
+    public void register(Object config) {
         this.configObjs.add(config);
 
-        boolean isAllFields = config.getClass().isAnnotationPresent(AllFieldsAreConfigurations.class);
         Field[] classFields = config.getClass().getDeclaredFields();
         Collection<Field> dest = new ArrayList<>();
 
         for (Field f : classFields) {
-            if (f.isAnnotationPresent(Configuration.class) || isAllFields) {
+            if (f.isAnnotationPresent(Option.class)) {
                 dest.add(f);
             }
         }
@@ -88,21 +86,6 @@ public final class ConfigHandler {
         for (Field it : dest) {
             if (!it.isAccessible()) {
                 it.setAccessible(true);
-            }
-
-            Configuration conf = it.getAnnotation(Configuration.class);
-
-            if (conf != null) {
-                if (
-                    this.cfg.has(conf.alt())
-                    && conf.alt().length() > 0
-                    && !this.cfg.has(it.getName())
-                ) {
-                    JsonElement altResolved = this.cfg.get(conf.alt());
-                    if (altResolved.getAsJsonObject().has(conf.alt())) {
-                        this.cfg.add(it.getName(), this.cfg.get(conf.alt()).getAsJsonObject().get(conf.alt()));
-                    }
-                }
             }
 
             if (this.cfg.has(it.getName())) {
@@ -117,21 +100,26 @@ public final class ConfigHandler {
     }
 
     /**
-     * Removes a {@link rocks.rdil.simpleconfig.Config} class from this handler.
+     * Removes a class and any option it contains from this handler.
      * This may cause changes to be discarded!
      * 
-     * @param config The config class.
+     * @param config The class to unregister.
      */
-    public void unregister(Config config) {
+    public void unregister(Object config) {
         this.configObjs.remove(config);
     }
 
-    private void loadConfigurationToJsonFile(Config config) {
+    /**
+     * Adds all the fields from a class to the JSON object.
+     * 
+     * @param config The class to add the fields from.
+     */
+    private void loadConfigurationToJsonFile(Object config) {
         Field[] fields = config.getClass().getDeclaredFields();
         Collection<Field> dest = new ArrayList<>();
 
         for (Field theField : fields) {
-            if (theField.isAnnotationPresent(Configuration.class)) {
+            if (theField.isAnnotationPresent(Option.class)) {
                 dest.add(theField);
             }
         }
@@ -157,7 +145,7 @@ public final class ConfigHandler {
      * Saves the configuration to the file assigned to this handler.
      */
     public void save() {
-        for (Config it : this.configObjs) {
+        for (Object it : this.configObjs) {
             this.loadConfigurationToJsonFile(it);
         }
 
