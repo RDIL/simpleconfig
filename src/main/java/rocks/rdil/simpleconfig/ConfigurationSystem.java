@@ -21,7 +21,7 @@ import java.util.List;
  * have unlimited options/option classes.
  */
 @SuppressWarnings("deprecation")
-public final class ConfigurationSystem {
+public class ConfigurationSystem {
     private JsonObject cfg;
     private final List<Object> configObjs;
     private final File file;
