@@ -1,5 +1,7 @@
 plugins {
     id "java"
+    id "maven"
+    id "maven-publish"
 }
 
 repositories {
@@ -36,4 +38,45 @@ artifacts {
     archives jar
     archives javadocJar
     archives sourcesJar
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        if (project.hasProperty("deployPassword")) {
+            repository(url: "https://rdil.mycloudrepo.io/repositories/java-libs") {
+                authentication(userName: "deploy@rdil.rocks", password: project.properties.deployPassword)
+            }
+        }
+
+        pom {
+            groupId = project.group
+            version = project.version
+            artifactId = project.archivesBaseName
+            project {
+                name project.archivesBaseName
+                packaging "jar"
+                description "A simple configuration system based on JSON"
+                url "https://github.com/RDIL/simpleconfig"
+
+                scm {
+                    url "https://github.com/RDIL/simpleconfig"
+                    connection "scm:git:git://github.com/RDIL/simpleconfig.git"
+                    developerConnection "scm:git:git@github.com:RDIL/simpleconfig.git"
+                }
+
+                issueManagement {
+                    system "github"
+                    url "https://github.com/RDIL/simpleconfig/issues"
+                }
+
+                licenses {
+                    license {
+                        name "The MIT License"
+                        url "https://opensource.org/licenses/MIT"
+                        distribution "repo"
+                    }
+                }
+            }
+        }
+    }
 }

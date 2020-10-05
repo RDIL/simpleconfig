@@ -29,3 +29,5 @@ build
 .project
 .classpath
 org.eclipse.*
+.theia
+.vscode
