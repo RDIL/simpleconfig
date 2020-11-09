@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * A configuration option.
+ * 
+ * @since 2.0.0
  */
 @Documented
 @Target(ElementType.FIELD)

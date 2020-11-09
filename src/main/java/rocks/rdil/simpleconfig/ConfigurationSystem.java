@@ -19,6 +19,8 @@ import java.util.List;
  * The system's main class used for management.
  * Every JSON file should have an instance of this, and JSON files can
  * have unlimited options/option classes.
+ * 
+ * @since 2.0.0
  */
 @SuppressWarnings("deprecation")
 public class ConfigurationSystem {
