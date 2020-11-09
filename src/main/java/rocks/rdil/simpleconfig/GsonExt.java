@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 /**
- * A holder for our custom-configured GSON instance.
+ * A container for our custom-configured GSON instance.
  */
 public final class GsonExt {
     /**
