@@ -10,10 +10,10 @@ repositories {
 }
 
 dependencies {
-    api "com.google.code.gson:gson:2.8.6"
+    api "com.google.code.gson:gson:2.8.5"
 }
 
-version "2.1.0"
+version "2.1.1"
 group "rocks.rdil"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
@@ -21,6 +21,17 @@ targetCompatibility = JavaVersion.VERSION_1_8
 
 jar {
     from "LICENSE"
+    manifest {
+        attributes "Manifest-Version": "1.0"
+        attributes "Name": "simpleconfig"
+        attributes "Implementation-Title": "simpleconfig"
+        attributes "Implementation-Vendor": "Reece Dunham"
+        attributes "Implementation-Version": project.version
+        attributes "Specification-Title": "simpleconfig"
+        attributes "Specification-Vendor": "Reece Dunham"
+        attributes "Specification-Version": "2.1"
+        attributes "Built-By": "Reece Dunham"
+    }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

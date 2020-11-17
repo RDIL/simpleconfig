@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.1.1
+
+```diff
++ Add Gitpod config
+- Downgrade Gson to v2.8.5, remove usage of newer methods
++ Add helpful metadata to jar manifest
+```
+
 ## v2.1.0
 
 ```diff

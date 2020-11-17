@@ -43,7 +43,7 @@ public class ConfigurationSystem {
                     builder.append(line);
                 }
 
-                this.jsonObject = JsonParser.parseString(builder.toString()).getAsJsonObject();
+                this.jsonObject = new JsonParser().parse(builder.toString()).getAsJsonObject();
                 br.close();
                 fr.close();
             } else {
