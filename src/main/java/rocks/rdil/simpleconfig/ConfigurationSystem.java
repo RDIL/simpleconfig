@@ -19,9 +19,8 @@ import java.util.*;
  * 
  * @since 2.0.0
  */
-@SuppressWarnings("deprecation")
 public class ConfigurationSystem {
-    private JsonObject cfg;
+    private JsonObject jsonObject;
     private final List<Object> configObjs;
     private final File file;
 
@@ -32,7 +31,7 @@ public class ConfigurationSystem {
      */
     public ConfigurationSystem(File file) {
         this.file = file;
-        this.cfg = new JsonObject();
+        this.jsonObject = new JsonObject();
         this.configObjs = new ArrayList<>();
         try {
             if (this.file.exists()) {
@@ -44,7 +43,7 @@ public class ConfigurationSystem {
                     builder.append(line);
                 }
 
-                this.cfg = new JsonParser().parse(builder.toString()).getAsJsonObject();
+                this.jsonObject = JsonParser.parseString(builder.toString()).getAsJsonObject();
                 br.close();
                 fr.close();
             } else {
@@ -61,6 +60,7 @@ public class ConfigurationSystem {
      * 
      * @param config The class to be registered.
      */
+    @SuppressWarnings("deprecation")
     public void register(Object config) {
         this.configObjs.add(config);
 
@@ -78,9 +78,9 @@ public class ConfigurationSystem {
                 it.setAccessible(true);
             }
 
-            if (this.cfg.has(it.getName())) {
+            if (this.jsonObject.has(it.getName())) {
                 try {
-                    it.set(config, GsonExt.gson.fromJson(this.cfg.get(it.getName()), it.getType()));
+                    it.set(config, GsonExt.gson.fromJson(this.jsonObject.get(it.getName()), it.getType()));
                 } catch (Exception e) {
                     e.printStackTrace();
                     throw new IllegalStateException("Config options cannot be final!");
@@ -104,6 +104,7 @@ public class ConfigurationSystem {
      * that are instances of the specified class.
      *
      * @param clazz The class to check for.
+     * @see ConfigurationSystem#register(Object)
      */
     public void unregister(Class<?> clazz) {
         for (Object o : this.configObjs) {
@@ -118,6 +119,7 @@ public class ConfigurationSystem {
      * 
      * @param config The class to add the fields from.
      */
+    @SuppressWarnings("deprecation")
     private void loadConfigurationToJsonFile(Object config) {
         Field[] fields = config.getClass().getDeclaredFields();
         Collection<Field> dest = new ArrayList<>();
@@ -133,9 +135,10 @@ public class ConfigurationSystem {
             for (
                 Iterator<Field> annotatedFieldIter = dest.iterator();
                 annotatedFieldIter.hasNext();
-                this.cfg.add(it.getName(), GsonExt.gson.toJsonTree(it.get(config), it.getType()))
+                this.jsonObject.add(it.getName(), GsonExt.gson.toJsonTree(it.get(config), it.getType()))
             ) {
                 it = annotatedFieldIter.next();
+
                 if (!it.isAccessible()) {
                     it.setAccessible(true);
                 }
@@ -164,7 +167,7 @@ public class ConfigurationSystem {
         FileOutputStream fos;
         try {
             fos = new FileOutputStream(this.file);
-            String text = GsonExt.gson.toJson(this.cfg);
+            String text = GsonExt.gson.toJson(this.jsonObject);
             fos.write(text.getBytes(StandardCharsets.UTF_8));
             fos.close();
         } catch (IOException e1) {
@@ -176,6 +179,7 @@ public class ConfigurationSystem {
      * Returns all the registered configuration container classes.
      *
      * @return All registered configuration classes.
+     * @see ConfigurationSystem#register(Object)
      */
     public List<Object> getConfigObjs() {
         return configObjs;
@@ -196,9 +200,15 @@ public class ConfigurationSystem {
      * @return The JsonObject instance.
      */
     public JsonObject getJsonObject() {
-        return this.cfg;
+        return this.jsonObject;
     }
 
+    /**
+     * Checks if one {@link ConfigurationSystem} equals another.
+     * 
+     * @param o The second {@link ConfigurationSystem}.
+     * @return If the {@link ConfigurationSystem}s are equal.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -211,6 +221,12 @@ public class ConfigurationSystem {
         return getConfigObjs().equals(that.getConfigObjs()) && getFile().equals(that.getFile());
     }
 
+    /**
+     * Returns a hash code value for the object.
+     * This method is supported for the benefit of hash tables such as those provided by {@link java.util.HashMap}.
+     * 
+     * @return The hash code value.
+     */
     @Override
     public int hashCode() {
         return Objects.hash(getConfigObjs(), getFile());
