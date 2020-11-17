@@ -13,7 +13,7 @@ dependencies {
     api "com.google.code.gson:gson:2.8.6"
 }
 
-version "2.0.0"
+version "2.1.0"
 group "rocks.rdil"
 
 sourceCompatibility = JavaVersion.VERSION_1_8
