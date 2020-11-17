@@ -1,0 +1,4 @@
+image: rdilpickle/better-wsfull:latest
+
+tasks:
+  - init: ./gradlew build
