@@ -10,10 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * The system's main class used for management.
@@ -59,16 +56,7 @@ public class ConfigurationSystem {
     }
 
     /**
-     * Get the JSON object for this instance of the system's file.
-     * 
-     * @return The JsonObject instance.
-     */
-    public JsonObject getJsonObject() {
-        return this.cfg;
-    }
-
-    /**
-     * Registers a class and all the {@link rocks.rdil.simpleconfig.Option}s
+     * Registers a class and all the {@link Option}s
      * it contains to the current JSON file.
      * 
      * @param config The class to be registered.
@@ -109,6 +97,20 @@ public class ConfigurationSystem {
      */
     public void unregister(Object config) {
         this.configObjs.remove(config);
+    }
+
+    /**
+     * Calls {@link ConfigurationSystem#unregister(Object)} on any registered objects
+     * that are instances of the specified class.
+     *
+     * @param clazz The class to check for.
+     */
+    public void unregister(Class<?> clazz) {
+        for (Object o : this.configObjs) {
+            if (o.getClass().equals(clazz)) {
+                unregister(o);
+            }
+        }
     }
 
     /**
@@ -168,5 +170,49 @@ public class ConfigurationSystem {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
+    }
+
+    /**
+     * Returns all the registered configuration container classes.
+     *
+     * @return All registered configuration classes.
+     */
+    public List<Object> getConfigObjs() {
+        return configObjs;
+    }
+
+    /**
+     * Returns the file that this instance uses.
+     *
+     * @return The {@link java.io.File} object.
+     */
+    public File getFile() {
+        return file;
+    }
+
+    /**
+     * Get the JSON object for this instance of the system's file.
+     *
+     * @return The JsonObject instance.
+     */
+    public JsonObject getJsonObject() {
+        return this.cfg;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ConfigurationSystem that = (ConfigurationSystem) o;
+        return getConfigObjs().equals(that.getConfigObjs()) && getFile().equals(that.getFile());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getConfigObjs(), getFile());
     }
 }
